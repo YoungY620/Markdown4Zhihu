@@ -50,9 +50,9 @@ def rename_image_ref(m, original=True):
     print("[debug50]", m.group(0), m.group(1), m.group(2))
     if not (Path(image_folder_path.parent/m.group(1)).is_file() or (original and Path(image_folder_path.parent/m.group(2)).is_file())):
         return m.group(0)
-
     given_path = m.group(1) if not original else m.group(2)
     _image_path = file_folder_path.joinpath(given_path).resolve()
+    print("[debug53]", _image_path)
 
     if args.compress:
         img = Image.open(str(_image_path))
