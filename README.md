@@ -10,7 +10,7 @@
 ## 使用方法
 
 1. 首先，为您的笔记建立 Git 本地和远程仓库
-2. 将脚本 `zhihu-publisher.py` 下载到仓库根目录（与 `.git` 同级）
+2. 将脚本 `zhihu-publisher.py` 和 `requirements.txt` 下载到仓库根目录（与 `.git` 同级）
 3. 确保本机已安装 [Python 3](https://www.python.org/)
 4. 命令行输入：
 
