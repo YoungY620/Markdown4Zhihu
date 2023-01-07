@@ -1,0 +1,4 @@
+chardet==5.1.0
+pathlib2==2.3.7.post1
+Pillow==9.4.0
+six==1.16.0

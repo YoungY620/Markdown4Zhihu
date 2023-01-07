@@ -44,15 +44,12 @@ def formula_ops(_lines):
 
 # The support function for image_ops. It will take in a matched object and make sure they are competible
 def rename_image_ref(m, original=True):
-    # global image_folder_path
     global file_folder_path
     global root
     given_path = m.group(1) if not original else m.group(2)
     _image_path = file_folder_path.joinpath(given_path).resolve()
-    print("[debug50]", m.group(0), m.group(1), m.group(2), _image_path)
-    if not (Path(image_folder_path.parent/m.group(1)).is_file() or (original and Path(image_folder_path.parent/m.group(2)).is_file())):
+    if not _image_path.is_file():
         return m.group(0)
-    print("[debug53]", _image_path)
 
     if args.compress:
         img = Image.open(str(_image_path))
@@ -64,7 +61,7 @@ def rename_image_ref(m, original=True):
         img.convert('RGB').save(str(_image_path), optimize=True,quality=85)
     if _image_path.suffix != ".jpg":
         img = Image.open(str(_image_path))
-        _image_path = Path(str(_image_path.parent)+ _image_path.stem + ".jpg")
+        _image_path = Path(str(_image_path.parent/(_image_path.stem+".jpg")))
         img.convert('RGB').save(str(_image_path), optimize=True,quality=85)
 
     if original:
@@ -75,12 +72,8 @@ def rename_image_ref(m, original=True):
 # Search for the image links which appear in the markdown file. It can handle two types: ![]() and <img src="LINK" alt="CAPTION" style="zoom:40%;" />.
 # The second type is mainly for those images which have been zoomed.
 def image_ops(_lines):
-    # if args.compress:
-    #     _lines = re.sub(r"\!\[(.*?)\]\((.*?)\)",lambda m: "!["+m.group(1)+"]("+REPO_PREFIX+str(image_folder_path.name)+"/"+Path(m.group(2)).stem+".jpg)", _lines)
-    #     _lines = re.sub(r'<img src="(.*?)"',lambda m:'<img src="'+REPO_PREFIX+str(image_folder_path.name)+"/"+Path(m.group(1)).stem+'.jpg"', _lines)
-    # else:
     _lines = re.sub(r"\!\[(.*?)\]\((.*?)\)",functools.partial(rename_image_ref, original=True), _lines)
-    # _lines = re.sub(r'<img src="(.*?)"',functools.partial(rename_image_ref, original=False), _lines)
+    _lines = re.sub(r'<img src="(.*?)"',functools.partial(rename_image_ref, original=False), _lines)
     return _lines
 
 # Deal with table. Just add a extra \n to each original table line
@@ -136,7 +129,7 @@ if __name__ == "__main__":
         raise NotImplementedError
 
     args.input = Path(args.input)
-    file_folder_path = args.input.parent/(args.input.stem)
+    file_folder_path = args.input.parent
     root = os.path.dirname(os.path.abspath(__file__))
     args.images = os.path.join(root, args.images)
     args.images = os.path.relpath(args.images, root)
