@@ -47,7 +47,7 @@ def rename_image_ref(m, original=True):
     # global image_folder_path
     global file_folder_path
     global root
-    print("[debug50]", m.group(0), m.group(1), m.group(2), Path(image_folder_path.parent/m.group(1)).is_file() or (original and Path(image_folder_path.parent/m.group(2)).is_file()))
+    print("[debug50]", m.group(0), m.group(1), m.group(2), Path(image_folder_path.parent/m.group(1)).is_file(), (original and Path(image_folder_path.parent/m.group(2)).is_file()))
     if not (Path(image_folder_path.parent/m.group(1)).is_file() or (original and Path(image_folder_path.parent/m.group(2)).is_file())):
         return m.group(0)
     given_path = m.group(1) if not original else m.group(2)
