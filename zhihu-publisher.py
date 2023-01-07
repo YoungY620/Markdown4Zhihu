@@ -46,7 +46,6 @@ def formula_ops(_lines):
 # The support function for image_ops. It will take in a matched object and make sure they are competible
 def rename_image_ref(m, original=True):
     global image_folder_path
-    print("msg",REPO_PREFIX, image_folder_path)
     if not (Path(image_folder_path.parent/m.group(1)).is_file() or Path(image_folder_path.parent/m.group(2)).is_file()):
         return m.group(0)
     if os.path.getsize(image_folder_path.parent/m.group(1+int(original)))>COMPRESS_THRESHOLD:
@@ -59,6 +58,7 @@ def rename_image_ref(m, original=True):
             image_ref_name = Path(m.group(2)).name
         else:
             image_ref_name = Path(m.group(1)).name
+    print("msg",REPO_PREFIX, image_folder_path, image_ref_name)
     if original:
         return "!["+m.group(1)+"]("+REPO_PREFIX+str(image_folder_path.name)+"/"+image_ref_name+")"
     else:
