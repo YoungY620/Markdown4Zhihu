@@ -5,7 +5,6 @@
 
 import os, re
 import argparse
-import codecs
 import subprocess
 import chardet
 import functools
@@ -19,7 +18,9 @@ from shutil import copyfile
 ###############################################################################################################
 # GITHUB_REPO_PREFIX = Path("https://raw.githubusercontent.com/`YourUserName`/`YourRepoName`/master/Data/")
 # Your image folder remote link
-GITHUB_REPO_PREFIX = "https://raw.githubusercontent.com/miracleyoo/Markdown4Zhihu/master/Data/"
+GITEE_REPO_PREFIX = "https://gitee.com/{owner}/{repo}/raw/{branch}/"
+GITHUB_REPO_PREFIX = "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/"
+REPO_PREFIX = GITHUB_REPO_PREFIX
 COMPRESS_THRESHOLD = 5e5 # The threshold of compression
 
 # The main function for this program
@@ -63,16 +64,16 @@ def rename_image_ref(m, original=True):
         else:
             image_ref_name = Path(m.group(1)).name
     if original:
-        return "!["+m.group(1)+"]("+GITHUB_REPO_PREFIX+str(image_folder_path.name)+"/"+image_ref_name+")"
+        return "!["+m.group(1)+"]("+REPO_PREFIX+str(image_folder_path.name)+"/"+image_ref_name+")"
     else:
-        return '<img src="'+GITHUB_REPO_PREFIX+str(image_folder_path.name)+"/" +image_ref_name +'"'
+        return '<img src="'+REPO_PREFIX+str(image_folder_path.name)+"/" +image_ref_name +'"'
 
 # Search for the image links which appear in the markdown file. It can handle two types: ![]() and <img src="LINK" alt="CAPTION" style="zoom:40%;" />.
 # The second type is mainly for those images which have been zoomed.
 def image_ops(_lines):
     # if args.compress:
-    #     _lines = re.sub(r"\!\[(.*?)\]\((.*?)\)",lambda m: "!["+m.group(1)+"]("+GITHUB_REPO_PREFIX+str(image_folder_path.name)+"/"+Path(m.group(2)).stem+".jpg)", _lines)
-    #     _lines = re.sub(r'<img src="(.*?)"',lambda m:'<img src="'+GITHUB_REPO_PREFIX+str(image_folder_path.name)+"/"+Path(m.group(1)).stem+'.jpg"', _lines)
+    #     _lines = re.sub(r"\!\[(.*?)\]\((.*?)\)",lambda m: "!["+m.group(1)+"]("+REPO_PREFIX+str(image_folder_path.name)+"/"+Path(m.group(2)).stem+".jpg)", _lines)
+    #     _lines = re.sub(r'<img src="(.*?)"',lambda m:'<img src="'+REPO_PREFIX+str(image_folder_path.name)+"/"+Path(m.group(1)).stem+'.jpg"', _lines)
     # else:
     _lines = re.sub(r"\!\[(.*?)\]\((.*?)\)",functools.partial(rename_image_ref, original=True), _lines)
     # _lines = re.sub(r'<img src="(.*?)"',functools.partial(rename_image_ref, original=False), _lines)
@@ -105,18 +106,30 @@ def reduce_image_size():
 def git_ops():
     subprocess.run(["git","add","-A"])
     subprocess.run(["git","commit","-m", "update file "+args.input.stem])
-    subprocess.run(["git","push", "-u", "origin", "master"])
+    subprocess.run(["git","push", "-u", args.remote, args.branch])
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Please input the file path you want to transfer using --input=""')
+    parser = argparse.ArgumentParser()
     parser.add_argument('--compress', action='store_true', help='Compress the image which is too large')
     parser.add_argument('-i', '--input', type=str, help='Path to the file you want to transfer.')
     parser.add_argument('-e', '--encoding', type=str, help='Encoding of the input file')
+    parser.add_argument("--platform", type=str, default="github", choices=["github", "gitee"], help="Git platform. Choose \"github\" or \"gitee\". Default to \"github\"")
+    parser.add_argument("--owner", type=str, required=True, help="The name of org or user owning the repo.")
+    parser.add_argument("--repo", type=str, required=True, help="The name of repo.")
+    parser.add_argument("--branch", type=str, default="master", help="The branch you want to push to. Default to \"master\"")
+    parser.add_argument("--remote", type=str, default="origin", help="The name of origin. Default to \"origin\"")
 
     args = parser.parse_args()
     if args.input is None:
         raise FileNotFoundError("Please input the file's path to start!")
+
+    if args.platform == None or args.platform == "github":
+        REPO_PREFIX = GITHUB_REPO_PREFIX.format(owner=args.owner, repo=args.repo, branch=args.branch)
+    elif args.platform == "gitee":
+        REPO_PREFIX = GITEE_REPO_PREFIX.format(owner=args.owner, repo=args.repo, branch=args.branch)
     else:
-        args.input = Path(args.input)
-        image_folder_path = args.input.parent/(args.input.stem)
-        process_for_zhihu()
+        raise NotImplementedError
+
+    args.input = Path(args.input)
+    image_folder_path = args.input.parent/(args.input.stem)
+    process_for_zhihu()
