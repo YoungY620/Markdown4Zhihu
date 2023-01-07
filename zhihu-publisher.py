@@ -31,6 +31,7 @@ def process_for_zhihu():
         lines = image_ops(lines)
         lines = formula_ops(lines)
         lines = table_ops(lines)
+        print(lines)
         with open(args.input.parent/(args.input.stem+"(ToPublish).md"), "w+", encoding=args.encoding) as fw:
             fw.write(lines)
         git_ops()
