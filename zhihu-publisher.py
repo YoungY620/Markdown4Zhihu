@@ -20,8 +20,6 @@ COMPRESS_THRESHOLD = 5e5 # The threshold of compression
 
 # The main function for this program
 def process_for_zhihu():
-    if args.compress:
-        reduce_image_size()
     if args.encoding is None:
         with open(str(args.input), 'rb') as f:
             s = f.read()
@@ -33,7 +31,7 @@ def process_for_zhihu():
         lines = image_ops(lines)
         lines = formula_ops(lines)
         lines = table_ops(lines)
-        with open(args.input.parent/(args.input.stem+"_for_zhihu.md"), "w+", encoding=args.encoding) as fw:
+        with open(args.input.parent/(args.input.stem+"(ToPublish).md"), "w+", encoding=args.encoding) as fw:
             fw.write(lines)
         git_ops()
 
@@ -45,25 +43,33 @@ def formula_ops(_lines):
 
 # The support function for image_ops. It will take in a matched object and make sure they are competible
 def rename_image_ref(m, original=True):
-    global image_folder_path
+    # global image_folder_path
+    global file_folder_path
+    global root
     print(m.group(0), m.group(1), m.group(2))
-    if not (Path(image_folder_path.parent/m.group(1)).is_file() or Path(image_folder_path.parent/m.group(2)).is_file()):
+    if not (Path(image_folder_path.parent/m.group(1)).is_file() or (original and Path(image_folder_path.parent/m.group(2)).is_file())):
         return m.group(0)
-    if os.path.getsize(image_folder_path.parent/m.group(1+int(original)))>COMPRESS_THRESHOLD:
-        if original:
-            image_ref_name = Path(m.group(2)).stem+".jpg"
-        else:
-            image_ref_name = Path(m.group(1)).stem+".jpg"
-    else:
-        if original:
-            image_ref_name = Path(m.group(2)).name
-        else:
-            image_ref_name = Path(m.group(1)).name
-    print("msg",REPO_PREFIX, image_folder_path, image_ref_name)
+
+    given_path = m.group(1) if not original else m.group(2)
+    _image_path = file_folder_path.joinpath(given_path).resolve()
+
+    if args.compress:
+        img = Image.open(str(_image_path))
+        if(img.size[0]>img.size[1] and img.size[0]>1920):
+            img=img.resize((1920,int(1920*img.size[1]/img.size[0])),Image.ANTIALIAS)
+        elif(img.size[1]>img.size[0] and img.size[1]>1080):
+            img=img.resize((int(1080*img.size[0]/img.size[1]),1080),Image.ANTIALIAS)
+        _image_path = Path(str(_image_path.parent/(_image_path.stem+"(compressed).jpg")))
+        img.convert('RGB').save(str(_image_path), optimize=True,quality=85)
+    if _image_path.suffix != ".jpg":
+        img = Image.open(str(_image_path))
+        _image_path = Path(str(_image_path.parent)+ _image_path.stem + ".jpg")
+        img.convert('RGB').save(str(_image_path), optimize=True,quality=85)
+
     if original:
-        return "!["+m.group(1)+"]("+REPO_PREFIX+str(image_folder_path.name)+"/"+image_ref_name+")"
+        return "!["+m.group(1)+"]("+REPO_PREFIX+str(_image_path.relative_to(root))+")"
     else:
-        return '<img src="'+REPO_PREFIX+str(image_folder_path.name)+"/" +image_ref_name +'"'
+        return '<img src="'+REPO_PREFIX+str(_image_path.relative_to(root))+'"'
 
 # Search for the image links which appear in the markdown file. It can handle two types: ![]() and <img src="LINK" alt="CAPTION" style="zoom:40%;" />.
 # The second type is mainly for those images which have been zoomed.
@@ -81,12 +87,11 @@ def table_ops(_lines):
     return re.sub("\|\n",r"|\n\n", _lines)
 
 # Reduce image size and compress. It the image is bigger than threshold, then resize, compress, and change it to jpg.
-def reduce_image_size():
-    global image_folder_path
+def reduce_image_size(old_folder):
     image_folder_new_path = args.input.parent/(args.input.stem+"_compressed")
     if not os.path.exists(str(image_folder_new_path)): 
         os.mkdir(str(image_folder_new_path))
-    for image_path in [i for i in list(image_folder_path.iterdir()) if not i.name.startswith(".") and i.is_file()]:
+    for image_path in [i for i in list(old_folder.iterdir()) if not i.name.startswith(".") and i.is_file()]:
         print(image_path)
         if os.path.getsize(image_path)>COMPRESS_THRESHOLD:
             img = Image.open(str(image_path))
@@ -97,7 +102,7 @@ def reduce_image_size():
             img.convert('RGB').save(str(image_folder_new_path/(image_path.stem+".jpg")), optimize=True,quality=85)
         else:
             copyfile(image_path, str(image_folder_new_path/image_path.name))
-    image_folder_path = image_folder_new_path
+    return image_folder_new_path
 
 # Push your new change to github remote end
 def git_ops():
@@ -130,6 +135,7 @@ if __name__ == "__main__":
         raise NotImplementedError
 
     args.input = Path(args.input)
+    file_folder_path = args.input.parent/(args.input.stem)
     root = os.path.dirname(os.path.abspath(__file__))
     args.images = os.path.join(root, args.images)
     args.images = os.path.relpath(args.images, root)
