@@ -101,18 +101,20 @@ def reduce_image_size():
 def git_ops():
     subprocess.run(["git","add","-A"])
     subprocess.run(["git","commit","-m", "update file "+args.input.stem])
-    subprocess.run(["git","push", "-u", args.remote, args.branch])
+    subprocess.run(["git","push", "-f -u" if args.forcepush else "-u", args.remote, args.branch])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--compress', action='store_true', help='Compress the image which is too large')
     parser.add_argument('-i', '--input', type=str, help='Path to the file you want to transfer.')
+    parser.add_argument("--images", type=str, default="./assets", help="Path to images related to the repo.")
     parser.add_argument('-e', '--encoding', type=str, help='Encoding of the input file')
-    parser.add_argument("--platform", type=str, default="github", choices=["github", "gitee"], help="Git platform. Choose \"github\" or \"gitee\". Default to \"github\"")
+    parser.add_argument("--platform", type=str, default="github", choices=["github", "gitee"], help="Git platform. Default to \"github\"")
     parser.add_argument("--owner", type=str, required=True, help="The name of org or user owning the repo.")
     parser.add_argument("--repo", type=str, required=True, help="The name of repo.")
     parser.add_argument("--branch", type=str, default="master", help="The branch you want to push to. Default to \"master\"")
     parser.add_argument("--remote", type=str, default="origin", help="The name of origin. Default to \"origin\"")
+    parser.add_argument("--forcepush", action="store_true", help="Add \"-f\" when push the repo.")
     
     args = parser.parse_args()
     if args.input is None:
@@ -126,5 +128,8 @@ if __name__ == "__main__":
         raise NotImplementedError
 
     args.input = Path(args.input)
-    image_folder_path = args.input.parent/(args.input.stem)
+    root = os.path.dirname(os.path.abspath(__file__))
+    args.images = os.path.join(root, args.images)
+    args.images = os.path.relpath(args.images, root)
+    image_folder_path = Path(args.images)
     process_for_zhihu()
