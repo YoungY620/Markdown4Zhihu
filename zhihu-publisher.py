@@ -1,7 +1,7 @@
+## Please put this file in the same folder of .git/
+## This program aims to transfer your markdown file into a way zhihu.com can recognize correctly.
+## It will mainly deal with your local images and the formulas inside.
 
-
-# Usage: This program aims to transfer your markdown file into a way zhihu.com can recognize correctly.
-#        It will mainly deal with your local images and the formulas inside.
 
 import os, re
 import argparse
@@ -13,11 +13,6 @@ from PIL import Image
 from pathlib2 import Path
 from shutil import copyfile
 
-###############################################################################################################
-## Please change the GITHUB_REPO_PREFIX value according to your own GitHub user name and relative directory. ##
-###############################################################################################################
-# GITHUB_REPO_PREFIX = Path("https://raw.githubusercontent.com/`YourUserName`/`YourRepoName`/master/Data/")
-# Your image folder remote link
 GITEE_REPO_PREFIX = "https://gitee.com/{owner}/{repo}/raw/{branch}/"
 GITHUB_REPO_PREFIX = "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/"
 REPO_PREFIX = GITHUB_REPO_PREFIX
