@@ -58,6 +58,7 @@ def rename_image_ref(m, original=True):
             image_ref_name = Path(m.group(2)).name
         else:
             image_ref_name = Path(m.group(1)).name
+    print(REPO_PREFIX, image_folder_path, image_ref_name)
     if original:
         return "!["+m.group(1)+"]("+REPO_PREFIX+str(image_folder_path.name)+"/"+image_ref_name+")"
     else:
