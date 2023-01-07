@@ -86,7 +86,7 @@ def table_ops(_lines):
 # Reduce image size and compress. It the image is bigger than threshold, then resize, compress, and change it to jpg.
 def reduce_image_size():
     global image_folder_path
-    image_folder_new_path = args.input.parent/(args.input.stem+"_for_zhihu")
+    image_folder_new_path = args.input.parent/(args.input.stem+"_compressed")
     if not os.path.exists(str(image_folder_new_path)): 
         os.mkdir(str(image_folder_new_path))
     for image_path in [i for i in list(image_folder_path.iterdir()) if not i.name.startswith(".") and i.is_file()]:
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     parser.add_argument("--repo", type=str, required=True, help="The name of repo.")
     parser.add_argument("--branch", type=str, default="master", help="The branch you want to push to. Default to \"master\"")
     parser.add_argument("--remote", type=str, default="origin", help="The name of origin. Default to \"origin\"")
-
+    
     args = parser.parse_args()
     if args.input is None:
         raise FileNotFoundError("Please input the file's path to start!")

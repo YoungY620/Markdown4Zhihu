@@ -4,7 +4,7 @@
 
 这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档这里是一个测试文档。
 
-![这里是一个测试图片](https://raw.githubusercontent.com/YoungY620/Markdown4Zhihu/master/一个测试文档_for_zhihu/image-01.jpg)
+![这里是一个测试图片](https://raw.githubusercontent.com/YoungY620/Markdown4Zhihu/master/一个测试文档_compressed/image-01.jpg)
 
 ## 下面是一段C++代码：
 
